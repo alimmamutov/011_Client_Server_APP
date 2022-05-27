@@ -6,3 +6,13 @@ w_2 = 'сокет'
 w_3 = 'декоратор'
 
 print(f'Тип:{type(w_1)} Содержание: {w_1}')
+print(f'Тип:{type(w_2)} Содержание: {w_2}')
+print(f'Тип:{type(w_3)} Содержание: {w_3}')
+
+w_1_unicode = '\u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u0430'
+w_2_unicode = '\u0441\u043e\u043a\u0435\u0442'
+w_3_unicode = '\u0434\u0435\u043a\u043e\u0440\u0430\u0442\u043e\u0440'
+
+print(f'Тип:{type(w_1_unicode)} Содержание: {w_1_unicode}')
+print(f'Тип:{type(w_2_unicode)} Содержание: {w_2_unicode}')
+print(f'Тип:{type(w_3_unicode)} Содержание: {w_3_unicode}')
