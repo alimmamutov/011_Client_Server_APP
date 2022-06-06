@@ -3,10 +3,10 @@
 import csv
 
 DATA = [['hostname', 'vendor', 'model', 'location'],
-        ['kp1', 'Cisco', '2960', 'Moscow, str'],
-        ['kp2', 'Cisco', '2960', 'Novosibirsk, str'],
-        ['kp3', 'Cisco', '2960', 'Kazan, str'],
-        ['kp4', 'Cisco', '2960', 'Tomsk, str']]
+        ['kp1', 'Cisco', 2960, 'Moscow, str'],
+        ['kp2', 'Cisco', 2960, 'Novosibirsk, str'],
+        ['kp3', 'Cisco', 2960, 'Kazan, str'],
+        ['kp4', 'Cisco', 2960, 'Tomsk, str']]
 
 #---------------------------------------------------------------------#
 # простая запись данных в файл .csv и вывод результата
