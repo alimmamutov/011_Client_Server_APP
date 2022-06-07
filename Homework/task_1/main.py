@@ -36,42 +36,37 @@ os_code_list, os_type_list. В этой же функции создать гл�
 
 ПРОШУ ВАС НЕ УДАЛЯТЬ СЛУЖЕБНЫЕ ФАЙЛЫ TXT И ИТОГОВЫЙ ФАЙЛ CSV!!!
 """
-import os, re
-
-
-# в цикле осуществляется перебор файлов
-# с данными, их открытие и считывание данных. В этой функции из считанных данных
-# необходимо с помощью регулярных выражений или другого инструмента извлечь значения параметров
-# «Изготовитель системы», «Название ОС», «Код продукта», «Тип системы».
-
+import os, re, csv
 def regex(headers, data):
     re_mask = r'{}'.format(header + ':\s*(.*)')
     re_string = re.compile(re_mask)
     elem = re_string.findall(data)
     return elem
 
+
 def get_data(path='.'):
-    os_prod_list = []
-    os_name_list = []
-    os_code_list = []
-    os_type_list = []
     main_data = []
-    headers = ['Изготовитель системы', 'Название ОС', 'Код продукта', ' Тип системы']
-    reg_mask = r'Изготовитель системы:\s*(?P<word1>(.*))|Название ОС:\s*(?P<word2>(.*))'
-
-    # reg_mask = ''
-    # for header in headers:
-    #     reg_mask += header + ':\s*(.*)|'
-    # reg_mask = r'{}'.format(reg_mask)[:-1]
-    files = list(filter(lambda x: re.match(r'info_\d*.txt',x), os.listdir(path)))
-    for file in files:
+    headers = ['Изготовитель системы', 'Название ОС', 'Код продукта', 'Тип системы']
+    files = list(filter(lambda x: re.match(r'info_\d*.txt', x), os.listdir(path)))
+    for ind, file in enumerate(files):
         with open(file, 'r', encoding='utf-8') as data:
-            # re_string = re.compile(reg_mask)
-            re_str = re.compile(r'Название ОС:\s*(?P<word1>.*)|Изготовитель системы:\s*(?P<word2>.*)')
-            elem = re_str.findall(data.read())
-            # dd = elem.group('word2')
-            a = 0
+            dict = {'Номер файла': ind + 1}
+            txt = data.read()
+            for header in headers:
+                reg_mask = header + ':\s*(?P<word>.*)'
+                compile_string = re.compile(reg_mask)
+                dict ['{}'.format(header)] = compile_string.search(txt).group('word')
+            main_data.append(dict)
+    return main_data
 
 
+def write_to_csv(out_file):
+    main_data = get_data()
+    headers = ['Номер файла', 'Изготовитель системы', 'Название ОС', 'Код продукта', 'Тип системы']
+    with open(out_file, 'w', encoding='utf-8') as file:
+        writer = csv.DictWriter(file, fieldnames=headers)
+        writer.writeheader()
+        writer.writerows(main_data)
 
-get_data()
+
+write_to_csv('my_custom_data.csv')
