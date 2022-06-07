@@ -18,26 +18,20 @@ ASCII(например, €);
 Реализовать считывание данных из созданного файла и проверить,
 совпадают ли они с исходными.
 """
+import yaml
+my_dict = {
+    'list':['first_element','second_element','last_element'],
+    'count': 15,
+    'dictionary':{
+        'first': '15200€',
+        'second': '250€'
+    }
+}
+with open('new_file.yaml', 'w', encoding='utf-8') as file:
+    yaml.dump(my_dict, file, default_flow_style=False, allow_unicode=True, sort_keys=False)
+
+with open ('new_file.yaml', 'r', encoding='utf-8') as file:
+    data = yaml.safe_load(file)
+print(my_dict==data) # доказательство, что кодирование и декодирование дает такой же словарь как и в начале
 
 
-
-
-
-
-
-
-
-
-
-
-
-import socket
-
-obj_sock = socket.socket()
-
-# bytes ->
-obj_sock.sendto(var, ())
-
-#close
-
-клиент 1) 2)
