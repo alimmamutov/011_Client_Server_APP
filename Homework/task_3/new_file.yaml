@@ -1,0 +1,8 @@
+list:
+- first_element
+- second_element
+- last_element
+count: 15
+dictionary:
+  first: 15200€
+  second: 250€
