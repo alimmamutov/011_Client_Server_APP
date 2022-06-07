@@ -62,11 +62,15 @@ def get_data(path='.'):
 
 def write_to_csv(out_file):
     main_data = get_data()
-    headers = ['Номер файла', 'Изготовитель системы', 'Название ОС', 'Код продукта', 'Тип системы']
-    with open(out_file, 'w', encoding='utf-8') as file:
-        writer = csv.DictWriter(file, fieldnames=headers)
-        writer.writeheader()
-        writer.writerows(main_data)
+    if len(main_data) > 0:
+        headers = []
+        for key in main_data[0].keys():
+            headers.append(key)
+            # headers = ['Номер файла', 'Изготовитель системы', 'Название ОС', 'Код продукта', 'Тип системы']
+        with open(out_file, 'w', encoding='utf-8') as file:
+            writer = csv.DictWriter(file, fieldnames=headers)
+            writer.writeheader()
+            writer.writerows(main_data)
 
 
 write_to_csv('my_custom_data.csv')
