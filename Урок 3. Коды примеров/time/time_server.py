@@ -1,11 +1,14 @@
 """Программа сервера времени"""
 
-from socket import socket, AF_INET, SOCK_STREAM
+from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 import time
 
 # создаем объект серверного сокета
 # сетевой, потоковый (TCP)
 SERV_SOCK = socket(AF_INET, SOCK_STREAM)
+
+# эта настройка позволит освободить порт при разрыве соединения сразу же, если ее не сделать, то потом сразу же не получится переиспользовать этот порт
+SERV_SOCK.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
 
 # связываем сокет с адресом и портом
 # именно через них клиент подключится к серверу
@@ -14,7 +17,7 @@ SERV_SOCK.bind(('', 8888))
 # listen - сокет готов к прослушиванию.
 # Метод принимает один аргумент -
 # максимальное количество подключений в очереди.
-SERV_SOCK.listen(1)
+SERV_SOCK.listen(10)
 # попробуйте также поставить SERV_SOCK.listen(6)
 # запустить лаунчер и сравнить
 

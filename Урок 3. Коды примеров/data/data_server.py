@@ -6,11 +6,11 @@ from socket import socket, AF_INET, SOCK_STREAM
 SERV_SOCK = socket(AF_INET, SOCK_STREAM)
 # связываем сокет с адресом и портом
 # именно через них клиент подключится к серверу
-SERV_SOCK.bind(('', 8888))
+SERV_SOCK.bind(('', 8881))
 # listen - сокет готов к прослушиванию.
 # Метод принимает один аргумент -
 # максимальное количество подключений в очереди.
-SERV_SOCK.listen(1)
+SERV_SOCK.listen(3)
 
 try:
     while True:

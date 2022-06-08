@@ -3,7 +3,7 @@
 from socket import socket, AF_INET, SOCK_STREAM
 
 CLIENT_SOCK = socket(AF_INET, SOCK_STREAM)
-CLIENT_SOCK.connect(('localhost', 8888))
+CLIENT_SOCK.connect(('localhost', 8881))
 MSG = 'Привет, сервер'
 CLIENT_SOCK.send(MSG.encode('utf-8'))
 DATA = CLIENT_SOCK.recv(1024)
