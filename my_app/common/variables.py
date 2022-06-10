@@ -19,6 +19,8 @@ ACCOUNT_NAME = 'account_name'
 
 # Прочие ключи, используемые в протоколе
 PRESENCE = 'presence'
+AUTH = 'authenticate'
 RESPONSE = 'response'
 ERROR = 'error'
 ALERT = 'alert'
+PASSWORD = 'password'
