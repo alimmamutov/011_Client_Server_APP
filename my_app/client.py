@@ -5,9 +5,9 @@ import json
 import socket
 import time
 
-from common.variables import ACTION, PRESENCE, TIME, USER, ACCOUNT_NAME, ALERT, \
+from my_app.common.variables import ACTION, PRESENCE, TIME, USER, ACCOUNT_NAME, ALERT, \
     RESPONSE, ERROR, DEFAULT_IP_ADDRESS, DEFAULT_PORT, AUTH, PASSWORD
-from common.utils import get_message, send_message
+from my_app.common.utils import get_message, send_message
 
 
 def create_presence(account_name='Guest'):

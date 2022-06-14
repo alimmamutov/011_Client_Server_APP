@@ -3,9 +3,9 @@
 import socket
 import sys
 import json
-from common.variables import ACTION, ACCOUNT_NAME, RESPONSE, ALERT, \
+from my_app.common.variables import ACTION, ACCOUNT_NAME, RESPONSE, ALERT, \
     MAX_CONNECTIONS, PRESENCE, TIME, USER, ERROR, DEFAULT_PORT, AUTH, PASSWORD
-from common.utils import get_message, send_message
+from my_app.common.utils import get_message, send_message
 
 
 def process_client_message(message):
