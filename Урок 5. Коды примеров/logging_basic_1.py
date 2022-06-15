@@ -14,18 +14,19 @@ logging.basicConfig(
     # %(message)s - текст сообщения
     format="%(levelname)s %(asctime)s %(message)s",
     # будут обрабатывать сообщения с уровнем важности, равным указанному или выше
-    level=logging.INFO
-    #level=logging.DEBUG,
+    # level=logging.INFO
+    level=logging.DEBUG,
 )
 
 # Для использования логгера его нужно получить/создать функцией getLogger
 LOG = logging.getLogger('app.basic')
-
+LOG2 = logging.getLogger('app.std')
 
 # После этого можно использовать логгирование таким образом
 LOG.debug('Отладочная информация')
 LOG.info('Информационное сообщение')
 LOG.warning('Предупреждение')
 LOG.critical('Критическое общение')
+LOG2.critical('Критическое общение STD')
 
 # Обратите внимание, что не все сообщения попали в лог-файл. Почему?

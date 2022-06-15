@@ -18,7 +18,7 @@ FILE_HANDLER.setFormatter(FORMATTER)
 # Добавляем в логгер новый обработчик событий и устанавливаем уровень логгирования
 LOG.addHandler(FILE_HANDLER)
 LOG.setLevel(logging.DEBUG)
-
+LOG.warning('Предупреждающее сообщение')
 if __name__ == '__main__':
     # Создаём потоковый обработчик логгирования (по умолчанию sys.stderr):
     STREAM_HANDLER = logging.StreamHandler()

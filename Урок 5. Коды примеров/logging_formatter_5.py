@@ -30,3 +30,4 @@ LOG.setLevel(logging.DEBUG)
 # Передать сообщение обработчику
 #log.info('Замечательный день для релиза!')
 LOG.info("Параметры подключения: %(host)s, %(port)d", PARAMS)
+LOG.info(f"Параметры подключения: {PARAMS['host']}")
