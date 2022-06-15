@@ -4,6 +4,8 @@ import sys
 import json
 import socket
 import time
+import my_app.log.client_log_config
+import logging
 
 from my_app.common.variables import ACTION, PRESENCE, TIME, USER, ACCOUNT_NAME, ALERT, \
     RESPONSE, ERROR, DEFAULT_IP_ADDRESS, DEFAULT_PORT, AUTH, PASSWORD
@@ -62,6 +64,7 @@ def process_ans(message):
 
 
 def main():
+    LOG = logging.getLogger('client.logger')
     '''Загружаем параметы коммандной строки'''
     # client.py -p 192.168.0.100 8079
 
@@ -82,22 +85,31 @@ def main():
     server_address = DEFAULT_IP_ADDRESS
     server_port = DEFAULT_PORT
     transport = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    transport.connect((server_address, server_port))
+    try:
+        LOG.info(f'Попытка подключения к серверу адрес:{server_address} порт:{server_port}')
+        transport.connect((server_address, server_port))
+        LOG.info(f'Успешное подключение к серверу')
+    except Exception as error:
+        LOG.error(error.strerror)
+        sys.exit()
     if '-pr' in sys.argv:
         message_to_server = create_presence()
     elif '-auth' in sys.argv:
+        LOG.info('Параметры вызова клиента - Аутентификация ')
         account_name = sys.argv[sys.argv.index('-auth') + 1]
         psw = str(sys.argv[sys.argv.index('-auth') + 2])
         message_to_server = create_auth(account_name, psw)
     else: # Если параметры не указаны - делаю по умолчанию запрос присутствия
+        LOG.info('Параметры вызова клиента не указаны - по умолчанию отправляю запрос присутствия')
         message_to_server = create_presence()
+    LOG.info(f'Сформирован Запрос: {message_to_server}')
     send_message(transport, message_to_server)
     try:
         answer = process_ans(get_message(transport))
         print(answer)
     except (ValueError, json.JSONDecodeError):
         print('Не удалось декодировать сообщение сервера.')
-
+        LOG.error('Не удалось декодировать сообщение сервера')
 
 if __name__ == '__main__':
     main()

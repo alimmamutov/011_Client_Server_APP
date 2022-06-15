@@ -5,7 +5,7 @@
 import logging
 
 # Создаём объект-логгер с именем app.main
-LOG = logging.getLogger('app.main')
+LOG = logging.getLogger('client.logger')
 
 # Создаём объект форматирования:
 FORMATTER = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s ")
