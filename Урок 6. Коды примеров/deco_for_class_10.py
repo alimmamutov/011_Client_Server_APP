@@ -18,11 +18,11 @@ def mod_bar(cls):
 
         return new_func
 
-    cls.show = decorate(cls.show)
+    cls.show = decorate(cls.show) # Здесь мы заменяем родную функцию класса деорируемой
     return cls
 
 
-@mod_bar
+
 class Test:
     """Простой класс"""
     def __init__(self):
@@ -34,7 +34,16 @@ class Test:
         """Метод класса"""
         return "Какая-то функциональность метода класса"
 
+@mod_bar
+class Test2(Test):
+    pass
 
 TEST_OBJ = Test()
-TEST_OBJ.show()
+print(TEST_OBJ.show())
+
+TEST_2 = Test2()
+TEST_2.show()
+
+
+
 

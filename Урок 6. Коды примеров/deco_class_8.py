@@ -7,7 +7,7 @@ class Log:
         def decorated(*args, **kwargs):
             """Обертка"""
             res = func(*args, **kwargs)
-            print(f'log: {func.__name__}({args}, {kwargs}) = {res}')
+            print(f'log: {func.__name__}(args:{args}, kwargs:{kwargs}) = {res}')
             return res
         return decorated
 

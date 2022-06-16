@@ -16,7 +16,7 @@ def decorator(iters):
                 return_value = func(*args, **kwargs)
                 end = time.time()
                 total = total + (end-start)
-            print(f'Среднее время выполнения: {round(total/iters, 2)} секунд')
+            print(f'Среднее время выполнения на запрос ресурса {args[0]}: {round(total/iters, 2)} секунд')
             return return_value
 
         return wrapper
@@ -31,3 +31,4 @@ def get_wp(url):
 
 
 get_wp('https://google.com')
+get_wp('https://yandex.ru')
