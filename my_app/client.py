@@ -6,6 +6,7 @@ import socket
 import time
 import my_app.log.client_log_config
 import logging
+from my_app.common.decos import LOGGER
 
 from my_app.common.variables import ACTION, PRESENCE, TIME, USER, ACCOUNT_NAME, ALERT, \
     RESPONSE, ERROR, DEFAULT_IP_ADDRESS, DEFAULT_PORT, AUTH, PASSWORD

@@ -5,6 +5,7 @@ import sys
 import json
 import logging
 import my_app.log.server_log_config
+from my_app.common.decos import LOGGER
 
 from my_app.common.variables import ACTION, ACCOUNT_NAME, RESPONSE, ALERT, \
     MAX_CONNECTIONS, PRESENCE, TIME, USER, ERROR, DEFAULT_PORT, AUTH, PASSWORD
