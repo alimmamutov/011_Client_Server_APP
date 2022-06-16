@@ -33,3 +33,4 @@ if __name__ == '__main__':
 else:
     # Добавляем в логгер обработчик, создающий файл
     LOG.addHandler(FILE_HANDLER)
+    LOG.addHandler(STREAM_HANDLER)

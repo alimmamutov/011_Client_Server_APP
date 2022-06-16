@@ -12,6 +12,9 @@ from my_app.common.variables import ACTION, PRESENCE, TIME, USER, ACCOUNT_NAME, 
 from my_app.common.utils import get_message, send_message
 
 
+LOG = logging.getLogger('client.logger')
+
+
 def create_presence(account_name='Guest'):
     '''
     Функция генерирует запрос о присутствии клиента
@@ -64,22 +67,6 @@ def process_ans(message):
 
 
 def main():
-    LOG = logging.getLogger('client.logger')
-    '''Загружаем параметы коммандной строки'''
-    # client.py -p 192.168.0.100 8079
-
-    # try:
-    #     server_address = sys.argv[2]
-    #     server_port = int(sys.argv[3])
-    #     if server_port < 1024 or server_port > 65535:
-    #         raise ValueError
-    # except IndexError:
-    #     server_address = DEFAULT_IP_ADDRESS
-    #     server_port = DEFAULT_PORT
-    #     print(IndexError)
-    # except ValueError:
-    #     print('В качестве порта может быть указано только число в диапазоне от 1024 до 65535.')
-    #     sys.exit(1)
 
     # Инициализация сокета и обмен
     server_address = DEFAULT_IP_ADDRESS
@@ -104,11 +91,13 @@ def main():
         message_to_server = create_presence()
     LOG.info(f'Сформирован Запрос: {message_to_server}')
     send_message(transport, message_to_server)
+    LOG.info(f'Запрос: {message_to_server} отправлен на сервер')
     try:
         answer = process_ans(get_message(transport))
-        print(answer)
+        LOG.info(f'Получен ответ от сервера: {answer}')
+        # print(answer)
     except (ValueError, json.JSONDecodeError):
-        print('Не удалось декодировать сообщение сервера.')
+        # print('Не удалось декодировать сообщение сервера.')
         LOG.error('Не удалось декодировать сообщение сервера')
 
 if __name__ == '__main__':

@@ -2,6 +2,11 @@
 
 import json
 from .variables import MAX_PACKAGE_LENGTH, ENCODING
+import logging
+import my_app.log.client_log_config,  my_app.log.server_log_config
+
+LOG_server = logging.getLogger('server.logger')
+LOG_client = logging.getLogger('client.logger')
 
 
 def get_message(client):
@@ -18,8 +23,14 @@ def get_message(client):
         response = json.loads(json_response)
         if isinstance(response, dict):
             return response
+        else:
+            LOG_client.error(f'Сообщение {response} не является словарем')
+            LOG_server.error(f'Сообщение {response} не является словарем')
+            raise ValueError
+    else:
+        LOG_client.error('Сообщение не в байтовом выражении')
+        LOG_server.error('Сообщение не в байтовом выражении')
         raise ValueError
-    raise ValueError
 
 
 def send_message(sock, message):
@@ -31,6 +42,8 @@ def send_message(sock, message):
     :return:
     '''
     if not isinstance(message, dict):
+        LOG_client.error(f'Сообщение {message} не является словарем')
+        LOG_server.error(f'Сообщение {message} не является словарем')
         raise ValueError
     js_message = json.dumps(message)
     encoded_message = js_message.encode(ENCODING)
