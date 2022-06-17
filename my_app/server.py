@@ -5,15 +5,15 @@ import sys
 import json
 import logging
 import my_app.log.server_log_config
-from my_app.common.decos import LOGGER
+from my_app.common.decos import Log
 
 from my_app.common.variables import ACTION, ACCOUNT_NAME, RESPONSE, ALERT, \
-    MAX_CONNECTIONS, PRESENCE, TIME, USER, ERROR, DEFAULT_PORT, AUTH, PASSWORD
+    MAX_CONNECTIONS, PRESENCE, TIME, USER, ERROR, DEFAULT_PORT, AUTH, PASSWORD, SERVER_MODULE
 from my_app.common.utils import get_message, send_message
 
 LOG = logging.getLogger('server.logger')
 
-
+@Log(SERVER_MODULE)
 def process_client_message(message):
     '''
     Обработчик сообщений от клиентов, принимает словарь -

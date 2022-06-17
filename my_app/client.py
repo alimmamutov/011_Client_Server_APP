@@ -6,16 +6,15 @@ import socket
 import time
 import my_app.log.client_log_config
 import logging
-from my_app.common.decos import LOGGER
+from my_app.common.decos import Log
 
 from my_app.common.variables import ACTION, PRESENCE, TIME, USER, ACCOUNT_NAME, ALERT, \
-    RESPONSE, ERROR, DEFAULT_IP_ADDRESS, DEFAULT_PORT, AUTH, PASSWORD
+    RESPONSE, ERROR, DEFAULT_IP_ADDRESS, DEFAULT_PORT, AUTH, PASSWORD, CLIENT_MODULE
 from my_app.common.utils import get_message, send_message
-
 
 LOG = logging.getLogger('client.logger')
 
-
+@Log(CLIENT_MODULE)
 def create_presence(account_name='Guest'):
     '''
     Функция генерирует запрос о присутствии клиента
@@ -33,6 +32,7 @@ def create_presence(account_name='Guest'):
     return out
 
 
+@Log(CLIENT_MODULE)
 def create_auth(account_name, psw):
     '''
     Функция генерирует запрос о присутствии клиента
@@ -51,6 +51,7 @@ def create_auth(account_name, psw):
     return out
 
 
+@Log(CLIENT_MODULE)
 def process_ans(message):
     '''
     Функция разбирает ответ сервера
@@ -68,7 +69,6 @@ def process_ans(message):
 
 
 def main():
-
     # Инициализация сокета и обмен
     server_address = DEFAULT_IP_ADDRESS
     server_port = DEFAULT_PORT

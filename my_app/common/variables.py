@@ -1,4 +1,7 @@
 """Константы"""
+# Названия модулей
+SERVER_MODULE = 'server.py'
+CLIENT_MODULE = 'client.py'
 
 # Порт по умолчанию для сетевого ваимодействия
 DEFAULT_PORT = 7777

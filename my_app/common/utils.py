@@ -4,11 +4,12 @@ import json
 from .variables import MAX_PACKAGE_LENGTH, ENCODING
 import logging
 import my_app.log.client_log_config,  my_app.log.server_log_config
+from my_app.common.decos import Log
 
 LOG_server = logging.getLogger('server.logger')
 LOG_client = logging.getLogger('client.logger')
 
-
+@Log('utils.py')
 def get_message(client):
     '''
     Утилита приёма и декодирования сообщения
@@ -32,7 +33,7 @@ def get_message(client):
         LOG_server.error('Сообщение не в байтовом выражении')
         raise ValueError
 
-
+@Log('utils.py')
 def send_message(sock, message):
     '''
     Утилита кодирования и отправки сообщения
