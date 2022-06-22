@@ -21,11 +21,12 @@ def new_listen_socket(address):
 
 def mainloop():
     """Основной цикл обработки запросов клиентов"""
-    address = ('', 8888)
+    address = ('', 8884)
     all_clients = []
     sock = new_listen_socket(address)
 
     while True:
+        print(all_clients)
         try:
             # Проверка подключений
             conn, addr = sock.accept()
@@ -37,22 +38,24 @@ def mainloop():
             print(f"Получен запрос на соединение с {str(addr)}")
             # вносим в список добавившегося клиента
             all_clients.append(conn)
+            print(all_clients)
         finally:
 
             clients_write = []
             try:
                 clients_read, clients_write, errors = select.select([], all_clients, [], 0)
-
+                print(clients_write)
+                print(clients_read)
             except Exception:
                 pass
-
             for client in clients_write:
                 # определяем время
                 time_str = time.ctime(time.time()) + "\n"
                 try:
                     # отправляем время клиенту
-                    client.send(time_str.encode('utf-8'))
-
+                    data = time_str.encode('utf-8')
+                    print(data)
+                    client.send(data)
                 except Exception:
                     # клиент отключился
                     all_clients.remove(client)

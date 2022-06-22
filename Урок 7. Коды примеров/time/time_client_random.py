@@ -5,7 +5,7 @@
 from socket import socket, AF_INET, SOCK_STREAM
 
 SOCK = socket(AF_INET, SOCK_STREAM)
-SOCK.connect(('localhost', 8888))
+SOCK.connect(('localhost', 8884))
 
 while True:
     TIME_BYTES = SOCK.recv(1024)

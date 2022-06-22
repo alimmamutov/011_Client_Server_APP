@@ -2,7 +2,7 @@
 
 from socket import socket, AF_INET, SOCK_STREAM
 
-ADDRESS = ('localhost', 10000)
+ADDRESS = ('localhost', 8888)
 
 
 def echo_client():
