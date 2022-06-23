@@ -43,9 +43,10 @@ def mainloop():
 
             clients_write = []
             try:
-                clients_read, clients_write, errors = select.select([], all_clients, [], 0)
-                print(clients_write)
-                print(clients_read)
+                clients_read, clients_write, errors = select.select(all_clients, all_clients, [], 0)
+                # print(clients_write)
+                # print(clients_read)
+                print(f'{len(clients_write)}  clients connected')
             except Exception:
                 pass
             for client in clients_write:
