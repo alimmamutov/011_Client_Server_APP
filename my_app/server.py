@@ -1,31 +1,37 @@
 """Программа-сервер"""
-
-import socket
+import time
+from socket import socket, AF_INET, SOCK_STREAM
 import sys
 import json
 import logging
 import my_app.log.server_log_config
+import argparse
+import select
 from my_app.common.decos import Log
 
 from my_app.common.variables import ACTION, ACCOUNT_NAME, RESPONSE, ALERT, \
-    MAX_CONNECTIONS, PRESENCE, TIME, USER, ERROR, DEFAULT_PORT, AUTH, PASSWORD, SERVER_MODULE
+    MAX_CONNECTIONS, PRESENCE, TIME, USER, ERROR, DEFAULT_PORT, AUTH, PASSWORD, SERVER_MODULE, DEFAULT_TIMEOUT, \
+    MESSAGE_TEXT, MESSAGE, SENDER, DEFAULT_IP_ADDRESS
 from my_app.common.utils import get_message, send_message
 
 LOG = logging.getLogger('server.logger')
 
+
 @Log(SERVER_MODULE)
-def process_client_message(message):
+def process_client_message(message,messages_list=[], client=None):
     '''
     Обработчик сообщений от клиентов, принимает словарь -
     сообщение от клинта, проверяет корректность,
     возвращает словарь-ответ для клиента
-
     :param message:
+    :param messages_list:
+    :param client:
     :return:
     '''
     if ACTION in message and message[ACTION] == PRESENCE and TIME in message \
             and USER in message and message[USER][ACCOUNT_NAME] == 'Guest':
         return {RESPONSE: 200, ALERT: 'Пользователь {} прислал запрос на присутствие'.format(message[USER][ACCOUNT_NAME])}
+    # Если это Авторизация , то отправляем ответ успешной или не успешной авторизации
     elif ACTION in message and message[ACTION] == AUTH and TIME in message \
             and USER in message:
         if message[USER][ACCOUNT_NAME] == 'Alim' and message[USER][PASSWORD] == '123456':
@@ -33,82 +39,111 @@ def process_client_message(message):
         else:
             return {RESPONSE: 402,
                     ALERT: 'Неправильный логин/пароль'}
+    # Если это сообщение, то добавляем его в очередь сообщений. Ответ не требуется.
+    elif ACTION in message and message[ACTION] == MESSAGE and \
+            TIME in message and MESSAGE_TEXT in message:
+        messages_list.append((message[ACCOUNT_NAME], message[MESSAGE_TEXT]))
+        return
     return {
         RESPONSE: 400,
         ERROR: 'Bad Request'
     }
 
 
+@Log(SERVER_MODULE)
+def arg_parser():
+    """Парсер аргументов коммандной строки"""
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', default=DEFAULT_PORT, type=int, nargs='?')
+    parser.add_argument('-a', default=DEFAULT_IP_ADDRESS, nargs='?')
+    namespace = parser.parse_args(sys.argv[1:])
+    listen_address = namespace.a
+    listen_port = namespace.p
+
+    # проверка получения корретного номера порта для работы сервера.
+    if not 1023 < listen_port < 65536:
+        LOG.critical(
+            f'Попытка запуска сервера с указанием неподходящего порта '
+            f'{listen_port}. Допустимы адреса с 1024 до 65535.')
+        sys.exit(1)
+
+    return listen_address, listen_port
+
+
+@Log(SERVER_MODULE)
+def socket_server_initial(sock):
+    listen_address, listen_port = arg_parser()
+    sock.bind((listen_address, listen_port))
+    sock.settimeout(DEFAULT_TIMEOUT)
+    sock.listen(MAX_CONNECTIONS)
+    LOG.info(f'Сервер успешно запущен {"LocalHost" if listen_address == "" else listen_address}:{listen_port}')
+
+
+@Log(SERVER_MODULE)
+def prepare_message(mes):
+    return {
+                ACTION: MESSAGE,
+                SENDER: mes[0],
+                TIME: time.time(),
+                MESSAGE_TEXT: mes[1]
+            }
+
 def main():
-    '''
-    Загрузка параметров командной строки, если нет параметров, то задаём значения по умоланию.
-    Сначала обрабатываем порт:
-    server.py -p 8079 -a 192.168.0.100
-    :return:
-    '''
     LOG.info('Запуск сервера')
-    try:
-        if '-p' in sys.argv:
-            listen_port = int(sys.argv[sys.argv.index('-p') + 1])
-            LOG.debug(f'Выбран порт: {listen_port}')
-        else:
-            listen_port = DEFAULT_PORT
-            LOG.debug(f'Выбран порт: {listen_port} (по умолчанию)')
-        if listen_port < 1024 or listen_port > 65535:
-            LOG.error(f'Порт: {listen_port} не доступен для выбора!')
-            raise ValueError
-    except IndexError:
-        LOG.error(f'После параметра -\'p\' необходимо указать номер порта.')
-        # print('После параметра -\'p\' необходимо указать номер порта.')
-        sys.exit(1)
-    except ValueError:
-        # print(
-        #     'В качастве порта может быть указано только число в диапазоне от 1024 до 65535.')
-        LOG.error('В качастве порта может быть указано только число в диапазоне от 1024 до 65535.')
-        sys.exit(1)
+    # open socket
+    with socket(AF_INET, SOCK_STREAM) as sock:
 
-    # Затем загружаем какой адрес слушать
+        # innitial sock settings
+        socket_server_initial(sock)
 
-    try:
-        if '-a' in sys.argv:
-            listen_address = sys.argv[sys.argv.index('-a') + 1]
-            LOG.debug(f'Выбран адрес: {listen_address}')
-        else:
-            listen_address = ''
-            LOG.debug(f'Выбран адрес локального хоста по умолчанию')
-    except IndexError:
-        # print(
-        #     'После параметра \'a\'- необходимо указать адрес, который будет слушать сервер.')
-        LOG.error('После параметра \'a\'- необходимо указать адрес, который будет слушать сервер.')
-        sys.exit(1)
+        # список клиентов , очередь сообщений
+        clients = []
+        while True:
+            try:
+                client, client_address = sock.accept()
+            except OSError:
+                pass
+            else:
+                LOG.info(f'Установлено соедение с ПК {client_address}')
+                clients.append(client)
 
-    # Готовим сокет
+            clients_read = []
+            clients_write = []
+            err_lst = []
 
-    transport = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    transport.bind((listen_address, listen_port))
+            # Проверяем на наличие ждущих клиентов
+            try:
+                if clients:
+                    clients_read, clients_write, err_lst = select.select(clients, clients, [], 0)
+            except OSError:
+                pass
 
-    # Слушаем порт
+            # принимаем сообщения и если там есть сообщения,
+            # кладём в словарь, если ошибка, исключаем клиента.
+            messages = []
+            if clients_read:
+                for client_with_message in clients_read:
+                    try:
+                        response = process_client_message(get_message(client_with_message),
+                                               messages, client_with_message)
+                    except:
+                        LOG.info(f'Клиент {client_with_message.getpeername()} '
+                                    f'отключился от сервера.')
+                        clients.remove(client_with_message)
+                    else:
+                        if response:
+                            send_message(client_with_message, response)
 
-    transport.listen(MAX_CONNECTIONS)
-    LOG.info(f'Сервер успешно запущен {"LocalHost" if listen_address=="" else listen_address}:{listen_port}')
-    while True:
-        client, client_address = transport.accept()
-        try:
-            message_from_cient = get_message(client)
-            LOG.debug('Соединение открыто')
-            # print(message_from_cient)
-            LOG.info(f'Получено сообщение от клиента {message_from_cient}')
-            # {'action': 'presence', 'time': 1573760672.167031, 'user': {'account_name': 'Guest'}}
-            response = process_client_message(message_from_cient)
-            LOG.info(f'Подготовлено ответное сообщение {response}')
-            send_message(client, response)
-            LOG.info('Сообщение успешно отправлено клиенту')
-            client.close()
-        except (ValueError, json.JSONDecodeError):
-            # print('Принято некорретное сообщение от клиента.')
-            LOG.critical('Принято некорретное сообщение от клиента.')
-            client.close()
-        LOG.debug('Соединение закрыто')
+            # Если есть сообщения для отправки и ожидающие клиенты, отправляем им сообщения.
+            if messages:
+                for waiting_client in clients_write:
+                    for mes in messages:
+                        try:
+                            send_message(waiting_client, prepare_message(mes))
+                            LOG.info(f'Было отправлено сообщение пользователю {waiting_client.getpeername()} ')
+                        except:
+                            LOG.info(f'Клиент {waiting_client.getpeername()} отключился от сервера.')
+                            # clients.remove(waiting_client)
 
 if __name__ == '__main__':
     main()

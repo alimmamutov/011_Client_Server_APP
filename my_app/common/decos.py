@@ -22,10 +22,11 @@ class Log:
 
     def __call__(self, func_to_log):
         def log_saver(*args, **kwargs):
-            ret = func_to_log(*args, **kwargs)
+            # ret = func_to_log(*args, **kwargs)
             LOGGER.debug(f'Была вызвана функция {func_to_log.__name__} c параметрами {args}, {kwargs}. '
                          f'Вызов из модуля {func_to_log.__module__ if func_to_log.__module__ != "__main__" else self.module_name}. Вызов из' 
                          f' функции {traceback.format_stack()[0].strip().split()[-1]}.')
                          # f'Вызов из функции {inspect.stack()[1][3]}')
+            ret = func_to_log(*args, **kwargs)
             return ret
         return log_saver
