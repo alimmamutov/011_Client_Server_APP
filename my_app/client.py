@@ -142,6 +142,7 @@ def create_message(sock, account_name='Guest'):
     LOG.debug(f'Сформирован словарь сообщения: {message_dict}')
     return message_dict
 
+
 @Log(CLIENT_MODULE)
 def message_from_server(message):
     """Функция - обработчик сообщений других пользователей, поступающих с сервера"""
@@ -153,7 +154,6 @@ def message_from_server(message):
                     f'{message[SENDER]}:\n{message[MESSAGE_TEXT]}')
     else:
         LOG.error(f'Получено некорректное сообщение с сервера: {message}')
-
 
 
 def main():
@@ -182,6 +182,7 @@ def main():
                 except (ConnectionResetError, ConnectionError, ConnectionAbortedError):
                     LOG.error(f'Соединение с сервером было потеряно.')
                     sys.exit(1)
+
 
 if __name__ == '__main__':
     main()
