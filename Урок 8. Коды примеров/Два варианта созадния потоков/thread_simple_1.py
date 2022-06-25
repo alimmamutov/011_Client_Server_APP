@@ -13,7 +13,7 @@ def clock(interval):
         time.sleep(interval)
 
 
-THR = Thread(target=clock, args=(1, ))
+THR = Thread(target=clock, args=(15, ))
 
 """
 Обычно Python-приложение не завершается, пока работает хоть один его поток. 
@@ -22,6 +22,6 @@ THR = Thread(target=clock, args=(1, ))
 Если является, метод вернёт истину.
 """
 
-THR.daemon = False
+THR.daemon = True
 THR.start()
-THR.join()
+# THR.join()
