@@ -14,7 +14,7 @@ class MyThread(Thread):
 
     def run(self):
         """Запуск следующих команд в потоке"""
-        amount = random.randint(3, 15)
+        amount = random.randint(2, 10)
         time.sleep(amount)
         msg = f"Поток {self.name} запущен"
         print(msg)

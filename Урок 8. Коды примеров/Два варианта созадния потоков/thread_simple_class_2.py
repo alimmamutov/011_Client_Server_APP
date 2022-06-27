@@ -11,12 +11,17 @@ class ClockThread(Thread):
         self.daemon = True
         self.interval = interval
 
-    def run(self):
+    def run(self): # Эта функция отрабатывает, когда мы запускаем объект  start
         while True:
             print(f"Текущее время: {time.ctime()}")
+            self.test()
             time.sleep(self.interval)
+
+    def test(self):
+        print(1)
 
 
 THR = ClockThread(1)
 THR.start()
-THR.join()
+time.sleep(5)
+# THR.join()
