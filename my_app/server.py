@@ -78,7 +78,7 @@ def socket_server_initial(sock):
     sock.settimeout(DEFAULT_TIMEOUT)
     sock.listen(MAX_CONNECTIONS)
     LOG.info(f'Сервер успешно запущен {"LocalHost" if listen_address == "" else listen_address}:{listen_port}')
-
+    print(f'Сервер успешно запущен {"LocalHost" if listen_address == "" else listen_address}:{listen_port}')
 
 @Log(SERVER_MODULE)
 def prepare_message(mes):
@@ -140,14 +140,17 @@ def main():
             # Если есть сообщения для отправки и ожидающие клиенты, отправляем им сообщения.
             if messages and clients_write:
                 for mes in messages:
-                    dest_client = list(filter(lambda x: x['username'] == mes[2], usernames))[0]['client']
-                    if dest_client in clients_write:
-                        try:
-                            send_message(dest_client, prepare_message(mes))
-                            LOG.info(f'Было отправлено сообщение пользователю {dest_client.getpeername()} ')
-                            messages.remove(mes)
-                        except:
-                            LOG.info(f'Клиент {dest_client.getpeername()} отключился от сервера.')
+                    try:
+                        dest_client = list(filter(lambda x: x['username'] == mes[2], usernames))[0]['client']
+                        if dest_client in clients_write:
+                            try:
+                                send_message(dest_client, prepare_message(mes))
+                                LOG.info(f'Было отправлено сообщение пользователю {dest_client.getpeername()} ')
+                                messages.remove(mes)
+                            except:
+                                LOG.info(f'Клиент {dest_client.getpeername()} отключился от сервера.')
+                    except IndexError:
+                        LOG.error(f'Пользователя {mes[2]} нет в чате. Сообщение не отправлено')
 
                 # for waiting_client in clients_write:
                 #     for mes in messages:
@@ -158,5 +161,5 @@ def main():
                 #             LOG.info(f'Клиент {waiting_client.getpeername()} отключился от сервера.')
                 #             # clients.remove(waiting_client)
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+main()

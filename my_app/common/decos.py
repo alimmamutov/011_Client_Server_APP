@@ -3,8 +3,6 @@
 import sys
 import logging
 
-import module_name as module_name
-
 import my_app.log.server_log_config
 import my_app.log.client_log_config
 import traceback
