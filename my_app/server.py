@@ -11,14 +11,14 @@ from my_app.common.decos import Log
 
 from my_app.common.variables import ACTION, ACCOUNT_NAME, RESPONSE, ALERT, \
     MAX_CONNECTIONS, PRESENCE, TIME, USER, ERROR, DEFAULT_PORT, AUTH, PASSWORD, SERVER_MODULE, DEFAULT_TIMEOUT, \
-    MESSAGE_TEXT, MESSAGE, SENDER, DEFAULT_IP_ADDRESS
+    MESSAGE_TEXT, MESSAGE, SENDER, DEFAULT_IP_ADDRESS, DESTINATION_USER
 from my_app.common.utils import get_message, send_message
 
 LOG = logging.getLogger('server.logger')
 
 
 @Log(SERVER_MODULE)
-def process_client_message(message,messages_list=[], client=None):
+def process_client_message(message,messages_list=[], client=None, clients=None, usernames=None):
     '''
     Обработчик сообщений от клиентов, принимает словарь -
     сообщение от клинта, проверяет корректность,
@@ -29,7 +29,8 @@ def process_client_message(message,messages_list=[], client=None):
     :return:
     '''
     if ACTION in message and message[ACTION] == PRESENCE and TIME in message \
-            and USER in message and message[USER][ACCOUNT_NAME] == 'Guest':
+            and USER in message:
+        usernames.append({'client': client, 'username': message[USER][ACCOUNT_NAME]})
         return {RESPONSE: 200, ALERT: 'Пользователь {} прислал запрос на присутствие'.format(message[USER][ACCOUNT_NAME])}
     # Если это Авторизация , то отправляем ответ успешной или не успешной авторизации
     elif ACTION in message and message[ACTION] == AUTH and TIME in message \
@@ -42,7 +43,7 @@ def process_client_message(message,messages_list=[], client=None):
     # Если это сообщение, то добавляем его в очередь сообщений. Ответ не требуется.
     elif ACTION in message and message[ACTION] == MESSAGE and \
             TIME in message and MESSAGE_TEXT in message:
-        messages_list.append((message[ACCOUNT_NAME], message[MESSAGE_TEXT]))
+        messages_list.append((message[ACCOUNT_NAME], message[MESSAGE_TEXT], message[DESTINATION_USER]))
         return
     return {
         RESPONSE: 400,
@@ -98,6 +99,8 @@ def main():
 
         # список клиентов , очередь сообщений
         clients = []
+        usernames = []
+        messages = []
         while True:
             try:
                 client, client_address = sock.accept()
@@ -120,30 +123,40 @@ def main():
 
             # принимаем сообщения и если там есть сообщения,
             # кладём в словарь, если ошибка, исключаем клиента.
-            messages = []
             if clients_read:
                 for client_with_message in clients_read:
                     try:
                         response = process_client_message(get_message(client_with_message),
-                                               messages, client_with_message)
+                                               messages, client_with_message, clients, usernames)
                     except:
                         LOG.info(f'Клиент {client_with_message.getpeername()} '
                                     f'отключился от сервера.')
                         clients.remove(client_with_message)
+                        usernames.remove(list(filter(lambda x: x['client'] == client_with_message, usernames))[0])
                     else:
                         if response:
                             send_message(client_with_message, response)
 
             # Если есть сообщения для отправки и ожидающие клиенты, отправляем им сообщения.
-            if messages:
-                for waiting_client in clients_write:
-                    for mes in messages:
+            if messages and clients_write:
+                for mes in messages:
+                    dest_client = list(filter(lambda x: x['username'] == mes[2], usernames))[0]['client']
+                    if dest_client in clients_write:
                         try:
-                            send_message(waiting_client, prepare_message(mes))
-                            LOG.info(f'Было отправлено сообщение пользователю {waiting_client.getpeername()} ')
+                            send_message(dest_client, prepare_message(mes))
+                            LOG.info(f'Было отправлено сообщение пользователю {dest_client.getpeername()} ')
+                            messages.remove(mes)
                         except:
-                            LOG.info(f'Клиент {waiting_client.getpeername()} отключился от сервера.')
-                            # clients.remove(waiting_client)
+                            LOG.info(f'Клиент {dest_client.getpeername()} отключился от сервера.')
+
+                # for waiting_client in clients_write:
+                #     for mes in messages:
+                #         try:
+                #             send_message(waiting_client, prepare_message(mes))
+                #             LOG.info(f'Было отправлено сообщение пользователю {waiting_client.getpeername()} ')
+                #         except:
+                #             LOG.info(f'Клиент {waiting_client.getpeername()} отключился от сервера.')
+                #             # clients.remove(waiting_client)
 
 if __name__ == '__main__':
     main()

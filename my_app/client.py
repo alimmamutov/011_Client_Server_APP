@@ -2,6 +2,7 @@
 import argparse
 import sys
 import json
+import threading
 from socket import socket, AF_INET, SOCK_STREAM
 import time
 import my_app.log.client_log_config
@@ -9,9 +10,10 @@ import logging
 from my_app.common.decos import Log
 
 from my_app.common.variables import ACTION, PRESENCE, TIME, USER, ACCOUNT_NAME, ALERT, \
-    RESPONSE, ERROR, DEFAULT_IP_ADDRESS, DEFAULT_PORT, AUTH, PASSWORD, CLIENT_MODULE, MESSAGE, MESSAGE_TEXT, SENDER
+    RESPONSE, ERROR, DEFAULT_IP_ADDRESS, DEFAULT_PORT, AUTH, PASSWORD, CLIENT_MODULE, MESSAGE, MESSAGE_TEXT, SENDER, \
+    DESTINATION_USER
 from my_app.common.utils import get_message, send_message
-from my_app.errors import ServerError, ReqFieldMissingError
+from my_app.errors import ServerError, ReqFieldMissingError, IncorrectDataRecivedError
 
 LOG = logging.getLogger('client.logger')
 
@@ -92,7 +94,7 @@ def arg_parser():
         sys.exit(1)
 
     # Проверим допустим ли выбранный режим работы клиента
-    if client_mode not in ('listen', 'send'):
+    if client_mode not in ('listen', 'send', 'all'):
         LOG.critical(f'Указан недопустимый режим работы {client_mode}, '
                         f'допустимые режимы: listen , send')
         sys.exit(1)
@@ -107,7 +109,7 @@ def socket_client_initial(sock):
         LOG.info(
             f'Запущен клиент с парамертами: адрес сервера: {listen_address}, '
             f'порт: {listen_port}, режим работы: {client_mode}')
-        send_message(sock, create_presence())
+        send_message(sock, create_presence(user_name))
         answer = process_ans(get_message(sock))
         LOG.info(f'Установлено соединение с сервером. Ответ сервера: {answer}')
         print(f'Установлено соединение с сервером.')
@@ -127,33 +129,50 @@ def create_message(sock, account_name='Guest'):
     """Функция запрашивает текст сообщения и возвращает его.
     Так же завершает работу при вводе подобной комманды
     """
-    message = input('Введите сообщение для отправки или \'!!!\' для завершения работы: ')
-    if message == '!!!':
-        sock.close()
-        LOG.info('Завершение работы по команде пользователя.')
-        print('Спасибо за использование нашего сервиса!')
-        sys.exit(0)
+    time.sleep(1)
+    destination_user = input('Введите имя получателя: ')
+    message = input('Введите сообщение для отправки:')
     message_dict = {
         ACTION: MESSAGE,
         TIME: time.time(),
         ACCOUNT_NAME: account_name,
-        MESSAGE_TEXT: message
+        MESSAGE_TEXT: message,
+        DESTINATION_USER: destination_user
     }
     LOG.debug(f'Сформирован словарь сообщения: {message_dict}')
-    return message_dict
+    try:
+        send_message(sock, message_dict)
+        LOG.info(f'Отправлено сообщение для пользователя {destination_user}')
+    except:
+        LOG.critical('Потеряно соединение с сервером.')
+        sys.exit(1)
 
 
 @Log(CLIENT_MODULE)
-def message_from_server(message):
+def message_from_server(sock, my_username):
     """Функция - обработчик сообщений других пользователей, поступающих с сервера"""
-    if ACTION in message and message[ACTION] == MESSAGE and \
-            SENDER in message and MESSAGE_TEXT in message:
-        print(f'Получено сообщение от пользователя '
-              f'{message[SENDER]}:\n{message[MESSAGE_TEXT]}')
-        LOG.info(f'Получено сообщение от пользователя '
-                    f'{message[SENDER]}:\n{message[MESSAGE_TEXT]}')
-    else:
-        LOG.error(f'Получено некорректное сообщение с сервера: {message}')
+    while True:
+        try:
+            message = get_message(sock)
+            if ACTION in message and message[ACTION] == MESSAGE and SENDER in message:
+                print(f'\nПолучено сообщение от пользователя {message[SENDER]}:'
+                      f'\n{message[MESSAGE_TEXT]}')
+                LOG.info(f'Получено сообщение от пользователя {message[SENDER]}:'
+                            f'\n{message[MESSAGE_TEXT]}')
+            else:
+                LOG.error(f'Получено некорректное сообщение с сервера: {message}')
+        except IncorrectDataRecivedError:
+            LOG.error(f'Не удалось декодировать полученное сообщение.')
+        except (OSError, ConnectionError, ConnectionAbortedError,
+                ConnectionResetError, json.JSONDecodeError):
+            LOG.critical(f'Потеряно соединение с сервером.')
+            break
+
+
+@Log(CLIENT_MODULE)
+def user_interactive(sock, username):
+    while True:
+        create_message(sock, username)
 
 
 def main():
@@ -165,24 +184,21 @@ def main():
         # начинаем обмен с ним, согласно требуемому режиму.
         if client_mode == 'send':
             print('Режим работы - отправка сообщений.')
-        else:
+        elif client_mode == 'listen':
             print('Режим работы - приём сообщений.')
-        while True:
-            # режим работы - отправка сообщений
-            if client_mode == 'send':
-                try:
-                    send_message(sock, create_message(sock, user_name))
-                except (ConnectionResetError, ConnectionError, ConnectionAbortedError):
-                    LOG.error(f'Соединение с сервером было потеряно.')
-                    sys.exit(1)
-                    # Режим работы приём:
-            if client_mode == 'listen':
-                try:
-                    message_from_server(get_message(sock))
-                except (ConnectionResetError, ConnectionError, ConnectionAbortedError):
-                    LOG.error(f'Соединение с сервером было потеряно.')
-                    sys.exit(1)
-
+        elif client_mode == 'all':
+            print(f'Пользователь: {user_name} \n Отправка и получение \n')
+            receiver = threading.Thread(target=message_from_server, args=(sock, user_name))
+            receiver.daemon = True
+            receiver.start()
+            user_interface = threading.Thread(target=user_interactive, args=(sock, user_name))
+            user_interface.daemon = True
+            user_interface.start()
+            while True:
+                time.sleep(1)
+                if user_interface.is_alive() and receiver.is_alive():
+                    continue
+                break
 
 if __name__ == '__main__':
     main()

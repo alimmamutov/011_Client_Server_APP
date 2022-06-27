@@ -21,6 +21,7 @@ ACTION = 'action'
 TIME = 'time'
 USER = 'user'
 ACCOUNT_NAME = 'account_name'
+DESTINATION_USER = 'destination_user'
 SENDER = 'sender'
 
 # Прочие ключи, используемые в протоколе
